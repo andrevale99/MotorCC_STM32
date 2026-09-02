@@ -1,0 +1,73 @@
+import numpy as np
+from numpy import pi
+
+import matplotlib.pyplot as plt
+
+import scipy.signal as sc
+
+# ===============================
+# tempo simualacao
+# ===============================
+
+tf = 0.001
+dt = 1e-6
+
+time = np.arange(0, tf, step=dt)
+print(f'Samples: {tf/dt}')
+
+# ===============================
+# vars sistema
+# ===============================
+
+Ra = 2.6 #Ohm
+La = 0.006245 #H
+J = 0.0002 #N.m
+B = 1.9e-3 #N.m.s
+Ke = 0.31 #V/ (rad/s)
+Kt = Ke # (N.m)/A
+Kte = Kt
+
+# ===============================
+# ESPACO DE ESTADOS
+# ===============================
+
+# x = [ia, wm]^T
+
+A = np.array([
+	[-Ra/La, -Kte/La],
+	[Kte/J, -B/J]
+])
+
+B = np.array([[1/La],[0]])
+
+C = np.array([[0,1]])
+
+# ===============================
+# malha aberta
+# ===============================
+
+u = 40
+ia = 0
+wm = 0
+
+x = np.array([[ia],[wm]])
+xdot = np.zeros((2,1))
+
+ylog = np.zeros((1,len(time)))
+
+print(ylog.shape)
+print((C@x).shape)
+
+for k in range(len(time)-1):
+	xdot = A @ x + B*u
+	ia += xdot[0,0]
+	wm += xdot[1,0]
+
+	ylog[0,k+1] = wm
+
+plt.plot(time,ylog.T,label='rad/s')
+plt.grid()
+plt.xlabel('s')
+plt.ylabel('rad/s')
+plt.show()
+
