@@ -8,6 +8,9 @@ import scipy.linalg as la
 
 import sys
 
+width = 18
+height = 10
+
 # ===============================
 # funcoes
 # ===============================
@@ -65,24 +68,34 @@ wm = 0
 x = np.array([[ia],[wm]])
 xdot = np.zeros((2,1))
 
+ialog = np.zeros(len(time))
 ylog = np.zeros(len(time))
 
 for k in range(len(time)-1):
 	xdot = A @ x + B*u
-	ia += xdot[0,0] * dt
-	wm += xdot[1,0] * dt
-
+	
 	x = x + xdot * dt
+	
+	ylog[k+1] = x[1,0]
+	ialog[k+1] = x[0,0]
 
-	ylog[k+1] = wm
-
+plt.figure(figsize=(width,height))
+plt.subplot(211)
 plt.plot(time,ylog.T,label='rad/s')
 plt.grid()
 plt.xlabel('s')
 plt.ylabel('rad/s')
+
+plt.subplot(212)
+plt.plot(time,ialog,label='ia')
+plt.grid()
+plt.xlabel('s')
+plt.ylabel('A')
+
+plt.tight_layout()
 plt.show()
 
-del ylog
+del ylog, ialog
 
 # ===============================
 # controlabilidade
@@ -115,25 +128,32 @@ xdot = np.zeros((2,1))
 
 ylog = np.zeros(len(time))
 ulog = np.zeros(len(time))
+ialog = np.zeros(len(time))
 
 for k_ in range(len(time)-1):
 
 	xdot = (A - B@k) @ x + B*u
-	ia += xdot[0,0] * dt
-	wm += xdot[1,0] * dt
-
+	
 	x = x + xdot * dt
 
-	ylog[k_+1] = wm
+	ylog[k_+1] = x[1,0]
 	ulog[k_+1] = (u-k@x).item()
+	ialog[k_+1] = x[0,0]
 
-plt.subplot(211)
+plt.figure(figsize=(width,height))
+plt.subplot(311)
 plt.plot(time,ylog.T,label='rad/s')
 plt.grid()
 plt.xlabel('s')
 plt.ylabel('rad/s')
 
-plt.subplot(212)
+plt.subplot(312)
+plt.plot(time,ialog,label='ia')
+plt.grid()
+plt.xlabel('s')
+plt.ylabel('A')
+
+plt.subplot(313)
 plt.plot(time,ulog,label='V')
 plt.grid()
 plt.xlabel('s')
@@ -143,7 +163,7 @@ plt.tight_layout()
 
 plt.show()
 
-del ylog, ulog
+del ylog, ulog, ialog
 
 # ===============================
 # sistema realimentado com integrador
@@ -187,11 +207,14 @@ xdot = np.zeros((3,1))
 ylog = np.zeros(len(time))
 ulog = np.zeros(len(time))
 elog = np.zeros(len(time))
+ialog = np.zeros(len(time))
 
+elog[0] = ref - x[1,0]
 
 for k_ in range(len(time)-1):
+	
 	# erro de velocidade
-	e = ref - wm
+	e = ref - x[1,0]
 	
 	u = -(Kaug @ x).item()	
 	
@@ -199,32 +222,40 @@ for k_ in range(len(time)-1):
 	
 	x = x + xdot * dt
 
-	wm += x[1,0] * dt
-	
 	ylog[k_+1] = x[1,0]
 	ulog[k_+1] = u
-	elog[k_+1] = x[2, 0]
-
-plt.subplot(211)
-
+	elog[k_+1] = e
+	ialog[k_+1] = x[0,0]
+	
+plt.figure(figsize=(width,height))
+plt.subplot(411)
 plt.plot(time, ylog, label='Velocidade')
 plt.axhline(ref, linestyle='--', label='Referência')
-
 plt.grid()
 plt.xlabel('Tempo [s]')
 plt.ylabel('rad/s')
 plt.legend()
 
+plt.subplot(412)
+plt.plot(time, ialog, label='ia')
+plt.grid()
+plt.xlabel('Tempo [s]')
+plt.ylabel('A')
+plt.legend()
 
-plt.subplot(212)
-
+plt.subplot(413)
 plt.plot(time, ulog, label='Tensão')
-
 plt.grid()
 plt.xlabel('Tempo [s]')
 plt.ylabel('V')
-plt.legend()
+
+plt.subplot(414)
+plt.plot(time, elog, label='erro')
+plt.grid()
+plt.xlabel('Tempo [s]')
+plt.ylabel('rad/s')
 
 plt.tight_layout()
 plt.show()
 
+del ylog, ulog, ialog, elog
