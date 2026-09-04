@@ -101,7 +101,7 @@ del ylog, ialog
 # controlabilidade
 # ===============================
 
-U = np.concat([B, A@B], axis=1)
+U = np.concatenate([B, A@B], axis=1)
 
 if np.linalg.matrix_rank(U) == A.shape[0]:
 	print("Sistema controlavel")
