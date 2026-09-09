@@ -108,7 +108,7 @@ if np.linalg.matrix_rank(U) == A.shape[0]:
 else:
 	print("Sistema nao controlavel")
 
-polos = [-200, -100]
+polos = [-20, -10]
 
 k = np.array(sc.place_poles(A,B,polos).gain_matrix)
 print(f'Ganhos K = {k}')
@@ -230,7 +230,7 @@ for k_ in range(len(time)-1):
 plt.figure(figsize=(width,height))
 plt.subplot(411)
 plt.plot(time, ylog, label='Velocidade')
-plt.axhline(ref, linestyle='--', label='Referência')
+plt.axhline(ref, linestyle='--', label='Referência',color='black')
 plt.grid()
 plt.xlabel('Tempo [s]')
 plt.ylabel('rad/s')
