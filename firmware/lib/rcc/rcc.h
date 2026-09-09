@@ -75,18 +75,18 @@ typedef enum
 } rcc_ahb_divider_t;
 
 /**
- * @brief Estrutura de configuração do sistema de clock.
+ * @brief Estrutura contendo o estado atual da configuração de clock.
  *
- * Contém os parâmetros utilizados para configurar a fonte de clock
- * e os divisores dos barramentos AHB, APB1 e APB2.
+ * Armazena a fonte de clock atualmente selecionada e os divisores
+ * configurados para os barramentos AHB, APB1 e APB2.
  */
 typedef struct
 {
-    rcc_clock_source_t clock_source; /**< Fonte de clock a ser utilizada. */
-    rcc_ahb_divider_t ahb_divider;   /**< Divisor do clock do barramento AHB. */
-    rcc_apb_divider_t apb1_divider;  /**< Divisor do clock do barramento APB1. */
-    rcc_apb_divider_t apb2_divider;  /**< Divisor do clock do barramento APB2. */
-} rcc_confg_t;
+    rcc_clock_source_t clock_source; /**< Fonte de clock do sistema. */
+    rcc_ahb_divider_t ahb_divider;   /**< Divisor configurado para o AHB. */
+    rcc_apb_divider_t apb1_divider;  /**< Divisor configurado para o APB1. */
+    rcc_apb_divider_t apb2_divider;  /**< Divisor configurado para o APB2. */
+} rcc_clock_status_t;
 
 /**
  * @brief Estrutura de configuração do sistema de clock.
