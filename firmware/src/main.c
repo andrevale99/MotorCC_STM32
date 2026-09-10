@@ -2,6 +2,7 @@
 
 #include "rcc.h"
 #include "uart.h"
+#include "drv8833.h"
 
 int main(void)
 {

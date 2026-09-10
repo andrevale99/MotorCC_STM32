@@ -1,6 +1,5 @@
 #include "uart.h"
 
-
 void usart1_init(int clock, int baudrate)
 {
     /*
