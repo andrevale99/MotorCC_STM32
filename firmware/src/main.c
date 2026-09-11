@@ -1,6 +1,6 @@
 #include <stm32f411xe.h>
 
-#include "system.h"
+#include "drv8833_peripherals.h"
 
 #include "rcc.h"
 #include "uart.h"
@@ -39,19 +39,39 @@ int main(void)
 
     drv8833_set_sleep(&motor, 1); // Wake up the motor driver
 
-    drv8833_set_motor_dutycycle(&motor, 0, 500); // Set 50% duty cycle for both channels
 
+    int duty = 0;
+    int updown = 0;
     while (1)
     {
         usart1_send_string("Andre eh top!\r\n");
+        
+        if (duty == 0)
+        {
+            updown = 0;
+        }
+        else if (duty == motor.max_dutycycle)
+        {
+            updown = 1;
+        }
 
+        if (updown == 0)
+        {
+            duty++;
+        }
+        else if (updown == 1)
+        {
+            duty--;
+        }
+
+        drv8833_set_motor_dutycycle(&motor, 0, duty);
         /*
          * Apenas para tornar a visualização no terminal
          * mais fácil.
          *
          * Neste exemplo não estamos usando SysTick.
          */
-        for (volatile uint32_t i = 0; i < 2500000; i++)
+        for (volatile uint32_t i = 0; i < 2500000/100; i++)
             ;
     }
 
