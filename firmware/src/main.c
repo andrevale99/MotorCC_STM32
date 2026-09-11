@@ -10,6 +10,9 @@
 #include "uart.h"
 #include "drv8833.h"
 #include "encoder.h"
+#include "timer.h"
+
+char buffer[64] = {0};
 
 int main(void)
 {
@@ -40,13 +43,34 @@ int main(void)
         .max_dutycycle = 1000,
     };
 
-    drv8833_init(motor_configure_peripherals, &motor);
+    timer_err_t rettimer = TIMER_OK;
+    rettimer = timer_use(motor_configure_peripherals, TIMER_2_32_BIT);
+    if (rettimer != TIMER_OK)
+    {
+        sprintf(buffer, "Erro oa iniciar timer do drv8833: %i\n",
+                rettimer);
+        usart1_send_string(buffer);
+        return -1;
+    }
+    sprintf(buffer, "timer do drv8833 OK: %i\n",
+            rettimer);
+    usart1_send_string(buffer);
 
+    drv8833_init(motor_configure_peripherals, &motor);
     drv8833_set_sleep(&motor, 1); // Wake up the motor driver
 
+    rettimer = timer_use(encoder_configure_peripherals, TIMER_4_16_BIT);
+    if (rettimer != TIMER_OK)
+    {
+        sprintf(buffer, "Erro oa iniciar timer do encoder: %i\n",
+                rettimer);
+        usart1_send_string(buffer);
+        return -1;
+    }
+    sprintf(buffer, "timer do encoder OK: %i\n",
+            rettimer);
+    usart1_send_string(buffer);
     encoder_configure_peripherals();
-
-
 
     int duty = 0;
 
@@ -61,9 +85,6 @@ int main(void)
     int estado = 0;
 
     int pulsos = 0;
-
-    char buffer[64] = {0};
-
 
     while (1)
     {
@@ -82,7 +103,6 @@ int main(void)
 
         usart1_send_string(buffer);
 
-
         /*
          * ========================================================
          * MÁQUINA DE ESTADOS
@@ -100,32 +120,30 @@ int main(void)
              * ====================================================
              */
 
-            case 0:
+        case 0:
 
-                if (duty < motor.max_dutycycle)
-                {
-                    duty++;
-                }
-                else
-                {
-                    /*
-                     * Chegou ao máximo.
-                     * Passa para a rampa de descida.
-                     */
-                    estado = 1;
-                }
-
+            if (duty < motor.max_dutycycle)
+            {
+                duty++;
+            }
+            else
+            {
                 /*
-                 * Sentido 1
+                 * Chegou ao máximo.
+                 * Passa para a rampa de descida.
                  */
-                drv8833_set_motor_dutycycle(
-                    &motor,
-                    0,
-                    duty
-                );
+                estado = 1;
+            }
 
-                break;
+            /*
+             * Sentido 1
+             */
+            drv8833_set_motor_dutycycle(
+                &motor,
+                0,
+                duty);
 
+            break;
 
             /*
              * ====================================================
@@ -136,34 +154,32 @@ int main(void)
              * ====================================================
              */
 
-            case 1:
+        case 1:
 
-                if (duty > 0)
-                {
-                    duty--;
-                }
-                else
-                {
-                    /*
-                     * Chegou em zero.
-                     *
-                     * Troca o sentido e inicia a próxima
-                     * rampa.
-                     */
-                    estado = 2;
-                }
-
+            if (duty > 0)
+            {
+                duty--;
+            }
+            else
+            {
                 /*
-                 * Sentido 1
+                 * Chegou em zero.
+                 *
+                 * Troca o sentido e inicia a próxima
+                 * rampa.
                  */
-                drv8833_set_motor_dutycycle(
-                    &motor,
-                    0,
-                    duty
-                );
+                estado = 2;
+            }
 
-                break;
+            /*
+             * Sentido 1
+             */
+            drv8833_set_motor_dutycycle(
+                &motor,
+                0,
+                duty);
 
+            break;
 
             /*
              * ====================================================
@@ -174,32 +190,30 @@ int main(void)
              * ====================================================
              */
 
-            case 2:
+        case 2:
 
-                if (duty < motor.max_dutycycle)
-                {
-                    duty++;
-                }
-                else
-                {
-                    /*
-                     * Chegou ao máximo.
-                     * Passa para a descida.
-                     */
-                    estado = 3;
-                }
-
+            if (duty < motor.max_dutycycle)
+            {
+                duty++;
+            }
+            else
+            {
                 /*
-                 * Sentido 2
+                 * Chegou ao máximo.
+                 * Passa para a descida.
                  */
-                drv8833_set_motor_dutycycle(
-                    &motor,
-                    duty,
-                    0
-                );
+                estado = 3;
+            }
 
-                break;
+            /*
+             * Sentido 2
+             */
+            drv8833_set_motor_dutycycle(
+                &motor,
+                duty,
+                0);
 
+            break;
 
             /*
              * ====================================================
@@ -210,34 +224,32 @@ int main(void)
              * ====================================================
              */
 
-            case 3:
+        case 3:
 
-                if (duty > 0)
-                {
-                    duty--;
-                }
-                else
-                {
-                    /*
-                     * Terminou as quatro rampas.
-                     *
-                     * Volta para a primeira rampa.
-                     */
-                    estado = 0;
-                }
-
+            if (duty > 0)
+            {
+                duty--;
+            }
+            else
+            {
                 /*
-                 * Sentido 2
+                 * Terminou as quatro rampas.
+                 *
+                 * Volta para a primeira rampa.
                  */
-                drv8833_set_motor_dutycycle(
-                    &motor,
-                    duty,
-                    0
-                );
+                estado = 0;
+            }
 
-                break;
+            /*
+             * Sentido 2
+             */
+            drv8833_set_motor_dutycycle(
+                &motor,
+                duty,
+                0);
+
+            break;
         }
-
 
         /*
          * --------------------------------------------------------
