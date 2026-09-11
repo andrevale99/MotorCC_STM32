@@ -23,11 +23,15 @@ typedef struct
     void (*set_bin)(uint32_t dutycycle);
     uint32_t dutycycle_bin;
 
+    void (*set_sleep)(uint8_t state);
+
     const uint32_t max_dutycycle;
 } drv8833_motor_t;
 
 drv8833_err_t drv8833_init(void (*configure_peripherals)(void),
                            drv8833_motor_t *motor);
+
+drv8833_err_t drv8833_set_sleep(drv8833_motor_t *motor, uint8_t sleep);
 
 drv8833_err_t drv8833_set_motor_dutycycle(drv8833_motor_t *motor,
                                           uint32_t dutycycle_ain, 
