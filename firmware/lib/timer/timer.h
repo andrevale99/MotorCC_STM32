@@ -13,6 +13,7 @@ typedef enum
     TIMER_ERR_INVALID_CONFIG = -1,
     TIMER_ERR_INVALID_TIMER = -2,
     TIMER_IN_USE = -3,
+    TIMER_ERR_ISR_IN_USE = -4,
 } timer_err_t;
 
 typedef enum
@@ -28,10 +29,13 @@ typedef enum
 } timer_select_t;
 
 timer_err_t timer_use(void (*config)(void),
-                          timer_select_t select);
+                      timer_select_t select);
 
 int8_t timer_busy(timer_select_t select);
 
 timer_err_t timer_free(timer_select_t select);
+
+timer_err_t timer_install_isr(timer_select_t select,
+                              void (*func)(void), IRQn_Type type);
 
 #endif
