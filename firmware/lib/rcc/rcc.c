@@ -241,7 +241,7 @@ void rcc_get_clock_status(rcc_clock_status_t *status)
     else if (sw == RCC_CFGR_SWS_PLL)
         status->clock_source = RCC_PLL;
     else
-        status->clock_source = 0xFFFFFFFF; // Invalid clock source
+        status->clock_source = RCC_ERR_INVALID_CLOCK_SOURCE; // Invalid clock source
 
     // Get AHB divider
     uint32_t div = (RCC->CFGR & RCC_CFGR_HPRE) >> 4;
@@ -254,6 +254,4 @@ void rcc_get_clock_status(rcc_clock_status_t *status)
     // Get APB2 divider
     div = (RCC->CFGR & RCC_CFGR_PPRE2) >> 13;
     status->apb2_divider = div;
-
-    return status;
 }
