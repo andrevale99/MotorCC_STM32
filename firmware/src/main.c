@@ -1,5 +1,7 @@
 #include <stm32f411xe.h>
 
+#include "system.h"
+
 #include "rcc.h"
 #include "uart.h"
 #include "drv8833.h"
@@ -25,6 +27,19 @@ int main(void)
     }
 
     usart1_init(25000000U, 115200U);
+
+    drv8833_motor_t motor = {
+        .set_ain = motor_set_ain,
+        .set_bin = motor_set_bin,
+        .set_sleep = motor_set_sleep,
+        .max_dutycycle = 1000,
+    };
+
+    drv8833_init(motor_configure_peripherals, &motor);
+
+    drv8833_set_sleep(&motor, 1); // Wake up the motor driver
+
+    drv8833_set_motor_dutycycle(&motor, 0, 500); // Set 50% duty cycle for both channels
 
     while (1)
     {
