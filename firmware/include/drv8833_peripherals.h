@@ -1,5 +1,5 @@
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#ifndef DRV8833_PERIPHERALS_H
+#define DRV8833_PERIPHERALS_H
 
 #include <stdint.h>
 #include <stm32f411xe.h>
