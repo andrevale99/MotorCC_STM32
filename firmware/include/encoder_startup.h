@@ -1,5 +1,5 @@
-#ifndef ENCODER_PERIPHERALS_H
-#define ENCODER_PERIPHERALS_H
+#ifndef ENCODER_STARTUP_H
+#define ENCODER_STARTUP_H
 
 #include <stm32f411xe.h>
 
@@ -26,5 +26,6 @@ void encoder_configure_peripherals(void)
 
     TIM4->CR1 |= TIM_CR1_CEN;
 }
+
 
 #endif

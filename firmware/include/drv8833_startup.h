@@ -1,5 +1,5 @@
-#ifndef DRV8833_PERIPHERALS_H
-#define DRV8833_PERIPHERALS_H
+#ifndef DRV8833_STARTUP_H
+#define DRV8833_STARTUP_H
 
 #include <stdint.h>
 #include <stm32f411xe.h>
