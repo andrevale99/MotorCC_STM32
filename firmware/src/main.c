@@ -3,14 +3,15 @@
 
 #include <stm32f411xe.h>
 
-#include "drv8833_peripherals.h"
-#include "encoder_peripherals.h"
+#include "drv8833_startup.h"
+#include "encoder_startup.h"
 
 #include "rcc.h"
 #include "uart.h"
-#include "drv8833.h"
-#include "encoder.h"
 #include "timer.h"
+#include "motor.h"
+#include "encoder.h"
+#include "drv8833.h"
 
 char buffer[64] = {0};
 
