@@ -1,9 +1,7 @@
 #include "drv8833.h"
 
-static uint32_t max_duty_cycle = 0;
-
 drv8833_err_t drv8833_init(void (*configure_peripherals)(void),
-                           drv8833_motor_t *motor)
+                           drv8833_t *drv)
 {
 
     if (configure_peripherals == NULL)
@@ -11,12 +9,12 @@ drv8833_err_t drv8833_init(void (*configure_peripherals)(void),
         return DRV8833_ERROR_NO_CONFIGURE;
     }
 
-    if (motor->set_ain == NULL || motor->set_bin == NULL)
+    if (drv->set_ain == NULL || drv->set_bin == NULL)
     {
         return DRV8833_ERROR_INVALID_CHANNEL_FUNCTIONS;
     }
 
-    if (motor->max_dutycycle == 0)
+    if (drv->max_dutycycle == 0)
     {
         return DRV8833_ERROR_INVALID_DUTYCYCLE;
     }
@@ -26,39 +24,40 @@ drv8833_err_t drv8833_init(void (*configure_peripherals)(void),
     return DRV8833_OK;
 }
 
-drv8833_err_t drv8833_set_sleep(drv8833_motor_t *motor, uint8_t sleep)
+drv8833_err_t drv8833_set_sleep(drv8833_t *drv, uint8_t sleep)
 {
-    if (motor == NULL)
+    if (drv == NULL)
     {
         return DRV8833_ERROR_MOTOR_NULL;
     }
 
-    if (motor->set_sleep == NULL)
+    if (drv->set_sleep == NULL)
     {
         return DRV8833_ERROR_INVALID_CHANNEL_FUNCTIONS;
     }
 
-    motor->set_sleep(sleep);
+    drv->set_sleep(sleep);
 
     return DRV8833_OK;
 }
 
-drv8833_err_t drv8833_set_motor_dutycycle(drv8833_motor_t *motor,
-                                          uint32_t dutycycle_ain, 
+drv8833_err_t drv8833_set_motor_dutycycle(drv8833_t *drv,
+                                          uint32_t dutycycle_ain,
                                           uint32_t dutycycle_bin)
 {
-    if (motor == NULL)
+    if (drv == NULL)
     {
         return DRV8833_ERROR_MOTOR_NULL;
     }
 
-    if (dutycycle_ain > motor->max_dutycycle || dutycycle_bin > motor->max_dutycycle)
+    if (dutycycle_ain > drv->max_dutycycle ||
+        dutycycle_bin > drv->max_dutycycle)
     {
         return DRV8833_ERROR_INVALID_DUTYCYCLE;
     }
 
-    motor->set_ain(dutycycle_ain);
-    motor->set_bin(dutycycle_bin);
+    drv->set_ain(dutycycle_ain);
+    drv->set_bin(dutycycle_bin);
 
     return DRV8833_OK;
 }

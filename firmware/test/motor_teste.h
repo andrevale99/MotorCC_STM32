@@ -6,7 +6,7 @@
 #include "../lib/timer/timer.h"
 #include "../lib/rcc/rcc.h"
 
-void motor_teste(char *buffer, drv8833_motor_t *motor)
+void motor_teste(char *buffer, drv8833_t *motor)
 {
     int duty = 0;
 

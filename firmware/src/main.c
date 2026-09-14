@@ -27,6 +27,7 @@ int main(void)
 
     rcc_clock_status_t status;
     rcc_get_clock_status(&status);
+    SystemCoreClockUpdate();
 
     if (status.clock_source == RCC_HSE)
     {
@@ -35,9 +36,9 @@ int main(void)
         GPIOC->BSRR |= GPIO_BSRR_BR13; // Clock source is HSE
     }
 
-    usart1_init(25000000U, 115200U);
+    usart1_init(SystemCoreClock, 115200U);
 
-    drv8833_motor_t motor = {
+    drv8833_t motor = {
         .set_ain = motor_set_ain,
         .set_bin = motor_set_bin,
         .set_sleep = motor_set_sleep,
