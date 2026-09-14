@@ -12,5 +12,11 @@ int main(void)
     system_uart_init();
     system_motor_init();
 
+    while (1)
+    {
+        for (int i = 0; i < 25000000U / 100; i++)
+            ;
+    }
+
     return 0;
 }
