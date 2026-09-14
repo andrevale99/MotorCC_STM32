@@ -29,14 +29,12 @@ typedef enum
 } timer_select_t;
 
 typedef struct
-{ 
+{
     IRQn_Type irq_type;
     uint32_t priority;
-}timer_isr_t;
+} timer_isr_t;
 
-
-timer_err_t timer_use(void (*config)(void),
-                      timer_select_t select);
+timer_err_t timer_use(timer_select_t select);
 
 int8_t timer_busy(timer_select_t select);
 
@@ -46,6 +44,6 @@ timer_err_t timer_install_isr(timer_select_t select,
                               timer_isr_t *isr);
 
 timer_err_t timer_unistall_isr(timer_select_t select,
-                              timer_isr_t *isr);
+                               timer_isr_t *isr);
 
 #endif

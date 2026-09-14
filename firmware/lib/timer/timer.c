@@ -13,12 +13,8 @@ static inline timer_err_t check_timer(timer_select_t select)
     return TIMER_OK;
 }
 
-timer_err_t timer_use(void (*config)(void),
-                      timer_select_t select)
+timer_err_t timer_use(timer_select_t select)
 {
-    if (config == NULL)
-        return TIMER_ERR_INVALID_CONFIG;
-
     if (check_timer(select) != TIMER_OK)
         return TIMER_ERR_INVALID_TIMER;
 
