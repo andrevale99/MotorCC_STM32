@@ -32,7 +32,7 @@ typedef struct
 {
     union velocity speed;
 
-    float pulse;
+    int pulse;
 
     encoder_params_t gear_box;
 
