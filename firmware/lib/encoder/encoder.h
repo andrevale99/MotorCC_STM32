@@ -22,10 +22,10 @@ typedef enum
 
 typedef struct
 {
-    const uint32_t gearbox_ratio;
-    const uint32_t pulses_hall;
+    uint32_t gearbox_ratio;
+    uint32_t pulses_hall;
 
-    const float custom_gain;
+    float custom_gain;
 } encoder_params_t;
 
 typedef struct
