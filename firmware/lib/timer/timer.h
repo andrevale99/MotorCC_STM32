@@ -14,6 +14,7 @@ typedef enum
     TIMER_ERR_INVALID_TIMER = -2,
     TIMER_IN_USE = -3,
     TIMER_ERR_ISR_IN_USE = -4,
+    TIMER_ERR_INVALID_ISR = -5,
 } timer_err_t;
 
 typedef enum

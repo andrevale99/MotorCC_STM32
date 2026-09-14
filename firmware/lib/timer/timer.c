@@ -53,16 +53,17 @@ timer_err_t timer_free(timer_select_t select)
 timer_err_t timer_install_isr(timer_select_t select,
                               timer_isr_t *isr)
 {
-    if (timer_busy(select) == TIMER_IN_USE)
-        return TIMER_ERR_INVALID_TIMER;
-
     if (check_timer(select) != TIMER_OK)
         return TIMER_ERR_INVALID_TIMER;
 
-    if (NVIC_GetActive(isr->irq_type))
+    if (isr == NULL)
+        return TIMER_ERR_INVALID_ISR;
+
+    if (NVIC_GetEnableIRQ(isr->irq_type))
         return TIMER_ERR_ISR_IN_USE;
 
     NVIC_SetPriority(isr->irq_type, isr->priority);
+
     NVIC_EnableIRQ(isr->irq_type);
 
     return TIMER_OK;
