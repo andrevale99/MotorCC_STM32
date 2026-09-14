@@ -15,6 +15,8 @@
 #define DRV_TIMER_SELECT TIMER_2_32_BIT
 #define ENCODER_TIMER_SELECT TIMER_4_16_BIT
 
+#define SAMPLE_TIME_MS 50
+
 // ===================================================
 // VARS
 // ===================================================
@@ -193,6 +195,13 @@ void TIM2_IRQHandler(void)
     {
         DRV_TIMER->SR &= ~TIM_SR_UIF;
 
+        counterSamples++;
+        if (counterSamples > SAMPLE_TIME_MS)
+        {
+            motor.encoder.pulse = (int16_t)ENCODER_TIMER->CNT;
+            ENCODER_TIMER->CNT = 0;
+            counterSamples = 0;
+        }
         // Calculo de velocidade
         // Calculo do controlador
     }
