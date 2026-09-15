@@ -50,3 +50,12 @@ motor_err_t motor_set_duty(motor_t *motor,
     }
     return MOTOR_OK;
 }
+
+motor_err_t motor_get_rpm(motor_t *motor, float dt_secods)
+{
+
+    encoder_get_rpm(&(motor->encoder), dt_secods);
+    motor->speed = motor->encoder.speed.rpm;
+
+    return MOTOR_OK;
+}

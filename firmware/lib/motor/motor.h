@@ -19,6 +19,8 @@ typedef struct
 {
     encoder_t encoder;
     drv8833_t drv;
+
+    float speed;
 } motor_t;
 
 typedef enum
@@ -34,5 +36,7 @@ motor_err_t motor_on_off(motor_t *motor, int8_t on_off);
 motor_err_t motor_set_duty(motor_t *motor,
                            motor_dir_t direction,
                            uint32_t dutycycle);
+
+motor_err_t motor_get_rpm(motor_t *motor, float dt_secods);
 
 #endif
