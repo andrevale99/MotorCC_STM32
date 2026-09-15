@@ -4,6 +4,7 @@
 #include <stm32f411xe.h>
 
 #include "log.h"
+#include "pid.h"
 #include "motor.h"
 #include "timer.h"
 #include "drv8833.h"
@@ -21,11 +22,21 @@
 #define SET_FALSE(var) (var = 0)
 #define SET_TRUE(var) (var = 1)
 
+#define SETPOINT -120
+
 // ===================================================
 // VARS
 // ===================================================
 
 static motor_t motor;
+
+static _pid_t pid = {
+    .kp = 6.f,
+    .ki = 4.f,
+    .kd = 0.f,
+
+    .saturation = 1000.f,
+};
 
 static volatile int counterSamples = 0;
 
@@ -162,7 +173,7 @@ int system_motor_init(void)
     encoder_configure_peripherals();
 
     encoder_t encoder = {
-        .gear_box.gearbox_ratio = 32,
+        .gear_box.gearbox_ratio = 34,
         .gear_box.pulses_hall = 11,
         .gear_box.custom_gain = -1.f,
     };
@@ -186,7 +197,7 @@ int system_motor_init(void)
         return -1;
     }
 
-    motor_set_duty(&motor, MOTOR_CLOCKWISE, 300);
+    motor_set_duty(&motor, MOTOR_CLOCKWISE, 0);
 
     return 0;
 }
@@ -197,10 +208,18 @@ int system_motor_init(void)
 
 void system_motor_loop()
 {
+    const int setpoint = SETPOINT;
     if (flagSample)
     {
         motor_get_rpm(&motor, SAMPLES_TIME_S);
-        log_info("RPM=%i", ((int)(motor.speed)));
+        pid_control(&pid, setpoint, motor.speed, SAMPLES_TIME_S);
+
+        if (setpoint > 0)
+            motor_set_duty(&motor, MOTOR_COUNTERCLOCKWISE, pid.output);
+        else
+            motor_set_duty(&motor, MOTOR_CLOCKWISE, -pid.output);
+
+        log_info("output=%i, RPM=%i", ((int)(pid.output)), ((int)(motor.speed)));
 
         SET_FALSE(flagSample);
     }
