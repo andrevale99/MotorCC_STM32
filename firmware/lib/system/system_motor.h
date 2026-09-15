@@ -16,17 +16,23 @@
 #define ENCODER_TIMER_SELECT TIMER_4_16_BIT
 
 #define SAMPLE_TIME_MS 50
+#define SAMPLES_TIME_S ((float)(SAMPLE_TIME_MS / 1000.f))
+
+#define SET_FALSE(var) (var = 0)
+#define SET_TRUE(var) (var = 1)
 
 // ===================================================
 // VARS
 // ===================================================
 
-static volatile motor_t motor;
+static motor_t motor;
 
 static volatile int counterSamples = 0;
 
+static volatile int8_t flagSample = 0;
+
 // ===================================================
-// FUNCOES STATICS
+// INICIALIZACAO DOS PERIFERICOS
 // ===================================================
 
 static void drv_configure_peripherals(void)
@@ -58,7 +64,7 @@ static void drv_configure_peripherals(void)
     DRV_TIMER->CCR2 = 0; // Initial duty cycle for channel 2
     DRV_TIMER->CCR3 = 0; // Initial duty cycle for channel 3
 
-    DRV_TIMER->DIER |=  TIM_DIER_UIE;
+    DRV_TIMER->DIER |= TIM_DIER_UIE;
 
     DRV_TIMER->EGR = TIM_EGR_UG;
     DRV_TIMER->SR &= ~TIM_SR_UIF;
@@ -125,7 +131,7 @@ void motor_set_sleep(uint8_t state)
 }
 
 // ===================================================
-// PRINCIPAL
+// INICIALIZACAO DO SISTEMA DO MOTOR
 // ===================================================
 
 int system_motor_init(void)
@@ -186,6 +192,21 @@ int system_motor_init(void)
 }
 
 // ===================================================
+// LOOP PRINCIPAL DO SISTEMA MOTOR
+// ===================================================
+
+void system_motor_loop()
+{
+    if (flagSample)
+    {
+        motor_get_rpm(&motor, SAMPLES_TIME_S);
+        log_info("RPM=%i", ((int)(motor.speed)));
+
+        SET_FALSE(flagSample);
+    }
+}
+
+// ===================================================
 // INTERRUPCOES
 // ===================================================
 
@@ -195,15 +216,18 @@ void TIM2_IRQHandler(void)
     {
         DRV_TIMER->SR &= ~TIM_SR_UIF;
 
-        counterSamples++;
-        if (counterSamples > SAMPLE_TIME_MS)
+        if (!flagSample)
         {
-            motor.encoder.pulse = (int16_t)ENCODER_TIMER->CNT;
-            ENCODER_TIMER->CNT = 0;
-            counterSamples = 0;
+            counterSamples++;
+            if (counterSamples > SAMPLE_TIME_MS)
+            {
+                motor.encoder.pulse = ((int16_t)ENCODER_TIMER->CNT >> 2);
+                ENCODER_TIMER->CNT = 0;
+                counterSamples = 0;
+
+                SET_TRUE(flagSample);
+            }
         }
-        // Calculo de velocidade
-        // Calculo do controlador
     }
 }
 
