@@ -22,7 +22,8 @@
 #define SET_FALSE(var) (var = 0)
 #define SET_TRUE(var) (var = 1)
 
-#define SETPOINT -120
+#define SETPOINT_MAX 165
+#define ADC_MID 2048
 
 // ===================================================
 // VARS
@@ -30,9 +31,9 @@
 
 static motor_t motor;
 
-static _pid_t pid = {
-    .kp = 6.f,
-    .ki = 4.f,
+static pid _pid = {
+    .kp = 3.96f,
+    .ki = 48.41f,
     .kd = 0.f,
 
     .saturation = 1000.f,
@@ -107,6 +108,59 @@ static void encoder_configure_peripherals(void)
     ENCODER_TIMER->CR1 |= TIM_CR1_URS | TIM_CR1_CEN;
 }
 
+static void adc_setup(void)
+{
+    /*
+     * Habilita clock do GPIOA e ADC1.
+     */
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+    RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+
+    /*
+     * PA4 como entrada analógica.
+     */
+    GPIOA->MODER &= ~(GPIO_MODER_MODE4_Msk);
+    GPIOA->MODER |= (3U << GPIO_MODER_MODE4_Pos);
+
+    /*
+     * Sem pull-up/pull-down.
+     */
+    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPD4_Msk);
+
+    /*
+     * ADC1:
+     *
+     * Canal 4 (PA4)
+     * Uma conversão por sequência.
+     */
+    ADC1->SQR1 = 0;
+    ADC1->SQR3 = 4U;
+
+    /*
+     * Tempo de amostragem do canal 4.
+     *
+     * 84 ciclos é uma opção mais segura para uma fonte
+     * de alta impedância, como um potenciômetro.
+     */
+    ADC1->SMPR2 &= ~(ADC_SMPR2_SMP4_Msk);
+    ADC1->SMPR2 |= (4U << ADC_SMPR2_SMP4_Pos);
+
+    /*
+     * Conversão contínua.
+     */
+    ADC1->CR2 |= ADC_CR2_CONT;
+
+    /*
+     * Liga ADC.
+     */
+    ADC1->CR2 |= ADC_CR2_ADON;
+
+    /*
+     * Inicia conversão.
+     */
+    ADC1->CR2 |= ADC_CR2_SWSTART;
+}
+
 // ===================================================
 // FUNCOES DE ATRIBUICAO
 // ===================================================
@@ -147,6 +201,8 @@ void motor_set_sleep(uint8_t state)
 
 int system_motor_init(void)
 {
+    adc_setup();
+
     drv8833_t drv = {
         .set_ain = motor_set_ain,
         .set_bin = motor_set_bin,
@@ -173,7 +229,7 @@ int system_motor_init(void)
     encoder_configure_peripherals();
 
     encoder_t encoder = {
-        .gear_box.gearbox_ratio = 34,
+        .gear_box.gearbox_ratio = 36,
         .gear_box.pulses_hall = 11,
         .gear_box.custom_gain = -1.f,
     };
@@ -208,20 +264,25 @@ int system_motor_init(void)
 
 void system_motor_loop()
 {
-    const int setpoint = SETPOINT;
     if (flagSample)
     {
+        SET_FALSE(flagSample);
+        // Logica para caso n usa a interrupcao
+        while (!(ADC1->SR & ADC_SR_EOC))
+            ;
+        int setpoint = ((int)ADC1->DR - ADC_MID) *
+                       SETPOINT_MAX /
+                       ADC_MID;
+
         motor_get_rpm(&motor, SAMPLES_TIME_S);
-        pid_control(&pid, setpoint, motor.speed, SAMPLES_TIME_S);
+        pid_control(&_pid, setpoint, motor.speed, SAMPLES_TIME_S);
 
         if (setpoint > 0)
-            motor_set_duty(&motor, MOTOR_COUNTERCLOCKWISE, pid.output);
+            motor_set_duty(&motor, MOTOR_COUNTERCLOCKWISE, _pid.output);
         else
-            motor_set_duty(&motor, MOTOR_CLOCKWISE, -pid.output);
+            motor_set_duty(&motor, MOTOR_CLOCKWISE, -_pid.output);
 
-        log_info("output=%i, RPM=%i", ((int)(pid.output)), ((int)(motor.speed)));
-
-        SET_FALSE(flagSample);
+        log_info("%i;%i;%i", setpoint, ((int)(_pid.output)), ((int)(motor.speed)));
     }
 }
 
