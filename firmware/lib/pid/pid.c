@@ -1,27 +1,27 @@
 #include "pid.h"
 
-pid_err_t pid_clear(_pid_t *pid)
+pid_err_t pid_clear(pid *_pid)
 {
-    if (pid == NULL)
+    if (_pid == NULL)
         return PID_ERR_INVALID_ARG;
 
-    pid->P = 0.0f;
-    pid->I = 0.0f;
-    pid->D = 0.0f;
+    _pid->P = 0.0f;
+    _pid->I = 0.0f;
+    _pid->D = 0.0f;
 
-    pid->erro_anterior = 0.0f;
+    _pid->erro_anterior = 0.0f;
 
-    pid->output = 0.0f;
+    _pid->output = 0.0f;
 
-    pid->saturation = 0;
+    _pid->saturation = 0;
 
     return PID_OK;
 }
 
-pid_err_t pid_control(_pid_t *pid, float setpoint,
+pid_err_t pid_control(pid *_pid, float setpoint,
                       float input, float dt)
 {
-    if (pid == NULL)
+    if (_pid == NULL)
         return PID_ERR_INVALID_ARG;
 
     float erro = setpoint - input;
@@ -29,52 +29,52 @@ pid_err_t pid_control(_pid_t *pid, float setpoint,
     /*
      * Termo proporcional
      */
-    pid->P = pid->kp * erro;
+    _pid->P = _pid->kp * erro;
 
     /*
      * Termo derivativo
      */
-    pid->D = pid->kd *
-             (erro - pid->erro_anterior) /
+    _pid->D = _pid->kd *
+             (erro - _pid->erro_anterior) /
              dt;
 
     /*
      * Atualiza o erro anterior
      */
-    pid->erro_anterior = erro;
+    _pid->erro_anterior = erro;
 
     /*
      * Calcula uma saída sem o integrador
      */
-    float output_sem_I = pid->P + pid->D;
+    float output_sem_I = _pid->P + _pid->D;
 
     /*
      * Integra somente se a saída não estiver
      * saturada na direção do erro.
      */
-    if ((output_sem_I < pid->saturation && erro > 0.0f) ||
-        (output_sem_I > -pid->saturation && erro < 0.0f))
+    if ((output_sem_I < _pid->saturation && erro > 0.0f) ||
+        (output_sem_I > -_pid->saturation && erro < 0.0f))
     {
-        pid->I += pid->ki * erro * dt;
+        _pid->I += _pid->ki * erro * dt;
     }
 
     /*
-     * Saída do PID
+     * Saída do _pid
      */
-    pid->output = pid->P +
-                  pid->I +
-                  pid->D;
+    _pid->output = _pid->P +
+                  _pid->I +
+                  _pid->D;
 
     /*
      * Saturação
      */
-    if (pid->output > pid->saturation)
+    if (_pid->output > _pid->saturation)
     {
-        pid->output = pid->saturation;
+        _pid->output = _pid->saturation;
     }
-    else if (pid->output < -pid->saturation)
+    else if (_pid->output < -_pid->saturation)
     {
-        pid->output = -pid->saturation;
+        _pid->output = -_pid->saturation;
     }
 
     return PID_OK;

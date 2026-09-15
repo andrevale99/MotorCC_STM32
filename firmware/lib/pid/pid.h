@@ -27,11 +27,11 @@ typedef struct
     float saturation;
 
     float output;
-} _pid_t;
+} pid;
 
-pid_err_t pid_clear(_pid_t *pid);
+pid_err_t pid_clear(pid *_pid);
 
-pid_err_t pid_control(_pid_t *pid, float setpoint,
+pid_err_t pid_control(pid *_pid, float setpoint,
                       float input, float dt);
 
 #endif
